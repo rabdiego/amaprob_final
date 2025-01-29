@@ -48,7 +48,7 @@ class DenseVAE(AbstractVAE):
         self.mean_layer = nn.Linear(output_neurons, latent_dim)
         self.logvar_layer = nn.Linear(output_neurons, latent_dim)
         
-        self.decoder = DenseDecoder(num_layers+1, original_size, latent_dim, output_neurons, input_neurons)
+        self.decoder = DenseDecoder(num_layers, original_size, latent_dim, output_neurons, input_neurons)
 
         self.device = device
 
