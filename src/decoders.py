@@ -12,6 +12,7 @@ class DenseDecoder(nn.Module):
             oir_scaled = 1
         
         num_neurons = [int(input_neurons * oir_scaled**i) for i in range(num_layers)]
+        num_neurons[-1] = output_neurons
         num_neurons.append(original_size)
         num_neurons.insert(0, latent_dim)
 
