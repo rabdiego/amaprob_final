@@ -1,0 +1,54 @@
+import torch
+import torch.nn as nn
+from random import random
+from encoders import *
+from decoders import *
+
+class AbstractVAE(nn.Module):
+    def encode(self, x):
+        x = self.encoder(x)
+        mean, logvar = self.mean_layer(x), self.logvar_layer(x)
+        return mean, logvar
+
+
+    def reparameterization(self, mean, var):
+        epsilon = torch.randn_like(var).to(self.device)      
+        z = mean + var*epsilon
+        return z
+
+
+    def decode(self, x):
+        return self.decoder(x)
+
+
+    def forward(self, x):
+        mean, logvar = self.encode(x)
+        z = self.reparameterization(mean, logvar)
+        x_hat = self.decode(z)
+        return x_hat, mean, logvar
+    
+
+    def sample(self, scale=2):
+        def generate_coord():
+            return scale * (2*random() - 1)
+        
+        mean, var = generate_coord(), generate_coord()
+        z_sample = torch.tensor([[mean, var]], dtype=torch.float).to(self.device)
+        print(z_sample.shape)
+        x_decoded = self.decode(z_sample)
+        return x_decoded
+
+
+class DenseVAE(AbstractVAE):
+    def __init__(self, num_layers, original_size, input_neurons, output_neurons, latent_dim, device):
+        super(DenseVAE, self).__init__()
+
+        self.encoder = DenseEncoder(num_layers, original_size, input_neurons, output_neurons)
+
+        self.mean_layer = nn.Linear(output_neurons, latent_dim)
+        self.logvar_layer = nn.Linear(output_neurons, latent_dim)
+        
+        self.decoder = DenseDecoder(num_layers+1, original_size, latent_dim, output_neurons, input_neurons)
+
+        self.device = device
+
