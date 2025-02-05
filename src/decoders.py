@@ -101,7 +101,8 @@ class LSTMDecoder(nn.Module):
         self.block = nn.Sequential(
             nn.Linear(output_neurons, middle_ground),
             nn.LeakyReLU(0.2),
-            nn.Linear(middle_ground, original_size)
+            nn.Linear(middle_ground, original_size),
+            nn.Tanh()
         )
     
 
