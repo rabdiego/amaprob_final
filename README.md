@@ -37,4 +37,5 @@ Rode o comando `python sample.py [args]` dentro da pasta `src`. Os argumentos te
 1. `num_layers`: Número de camadas tanto no Encoder e Decoder
 2. `latent_dim`: Tamanho da dimensão latente
 3. `output_nerons`: Número de neurônios na última camada do Encoder/primeira camada do Decoder  
-4. `num_epochs`: Número de épocas para treinar o modelo.
+4. `middle_ground`: Número de neurônios na camada intermediária entre a saída do LSTMDecoder e o tamanho original  
+5. `num_epochs`: Número de épocas para treinar o modelo.
