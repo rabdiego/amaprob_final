@@ -112,3 +112,23 @@ class Conv1DVAE(AbstractVAE):
         
         self.device = device
 
+
+class LSTMVAE(AbstractVAE):
+    def __init__(self, num_layers, original_size, latent_dim, output_neurons, device):
+        """
+        num_layers: Número de camadas no encoder e no decoder
+        original_size: Tamanho do vetor 1D
+        latent_dim: Tamanho da dimensão latente
+        output_neurons: Número de neurônios na última camada oculta do encoder / primeira camada do decoder
+        """
+        super(LSTMVAE, self).__init__()
+
+        self.encoder = LSTMEncoder(num_layers, original_size, output_neurons)
+
+        self.mean_layer = nn.Linear(output_neurons, latent_dim)
+        self.logvar_layer = nn.Linear(output_neurons, latent_dim)
+        
+        self.decoder = LSTMDecoder(num_layers, original_size, latent_dim, output_neurons)
+
+        self.device = device
+

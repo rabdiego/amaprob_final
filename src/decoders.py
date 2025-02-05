@@ -90,3 +90,22 @@ class Conv1DDecoder(nn.Module):
         else:
             return self.__compute_out_neurons_conv(out_neurons, kernel_size, stride, padding, num_layers-1)
 
+
+class LSTMDecoder(nn.Module):
+    def __init__(self, num_layers, original_size, latent_size, output_neurons):
+        super(LSTMDecoder, self).__init__()
+
+        middle_ground = int((output_neurons + original_size)/2)
+
+        self.lstm = nn.LSTM(latent_size, output_neurons, num_layers=num_layers)
+        self.block = nn.Sequential(
+            nn.Linear(output_neurons, middle_ground),
+            nn.LeakyReLU(0.2),
+            nn.Linear(middle_ground, original_size)
+        )
+    
+
+    def forward(self, x):
+        x, _ = self.lstm(x)
+        return self.linear(x)
+
