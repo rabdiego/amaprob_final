@@ -14,7 +14,7 @@ match model_name:
     case 'conv':
         num_conv_layers, num_dense_layers, latent_dim, input_neurons, output_neurons, initial_channels, factor  = map(int, sys.argv[2:])
     case 'lstm':
-        num_layers, latent_dim, output_neurons = map(int, sys.argv[2:])
+        num_layers, latent_dim, output_neurons, middle_ground = map(int, sys.argv[2:])
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'\t[INFO] Running on {device}')
@@ -39,7 +39,7 @@ match model_name:
             device
         ).to(device)
     case 'lstm':
-        model = LSTMVAE(num_layers, original_size, latent_dim, output_neurons, device).to(device)
+        model = LSTMVAE(num_layers, original_size, latent_dim, output_neurons, middle_ground, device).to(device)
 
 model.load_state_dict(torch.load(f'../models/{model_name}.pth', weights_only=True))
 
