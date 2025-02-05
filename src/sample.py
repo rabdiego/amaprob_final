@@ -10,11 +10,11 @@ model_name = sys.argv[1]
 
 match model_name:
     case 'dense':
-        num_layers, latent_dim, input_neurons, output_nerons, num_epochs = map(int, sys.argv[2:])
+        num_layers, latent_dim, input_neurons, output_nerons  = map(int, sys.argv[2:])
     case 'conv':
-        num_conv_layers, num_dense_layers, latent_dim, input_neurons, output_neurons, initial_channels, factor, num_epochs = map(int, sys.argv[2:])
+        num_conv_layers, num_dense_layers, latent_dim, input_neurons, output_neurons, initial_channels, factor  = map(int, sys.argv[2:])
     case 'lstm':
-        num_layers, latent_dim, output_neurons, num_epochs = map(int, sys.argv[2:])
+        num_layers, latent_dim, output_neurons = map(int, sys.argv[2:])
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'\t[INFO] Running on {device}')
