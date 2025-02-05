@@ -29,7 +29,7 @@ class AbstractVAE(nn.Module):
     
 
     def sample(self, scale=2):
-        z_sample = torch.rand((2, self.latent_dim)).to(self.device)
+        z_sample = (scale*(torch.rand((2, self.latent_dim)) - 1)).to(self.device)
         x_decoded = self.decode(z_sample)
         return x_decoded
 
