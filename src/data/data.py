@@ -1,6 +1,6 @@
+import os
 import torch
 import torchaudio
-import os
 from torch.utils.data import Dataset
 
 class LoFiDataset(Dataset):
@@ -24,4 +24,3 @@ class LoFiDataset(Dataset):
 
         downsampled_waveform = resampler(waveform)
         return downsampled_waveform.mean(axis=0)
-
