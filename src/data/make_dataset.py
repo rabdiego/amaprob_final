@@ -9,6 +9,24 @@ from tqdm import tqdm
 OUTPUT_DIR = "../data/raw"
 Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
 
+def get_next_filename(output_dir=OUTPUT_DIR):
+    """Retorna o próximo nome disponível no formato numérico (0000.wav, 0001.wav...).
+
+    Args:
+        output_dir (str, optional): Caminho absoluto do diretório onde o áudio será salvo.
+                                    Default: "data/raw".
+
+    Returns:
+        str: nome do próximo segment
+    """
+    # Checagem do próximo número de segmento da sequência
+    existing_files = [f for f in os.listdir(output_dir) if f.endswith(".wav")]
+    existing_numbers = sorted(
+        [int(f.split(".")[0]) for f in existing_files if f.split(".")[0].isdigit()]
+    )
+    next_number = existing_numbers[-1] + 1 if existing_numbers else 0
+    return f"{next_number:04d}.wav"
+
 def download_audio_ytdlp(url, output_dir=OUTPUT_DIR):
     """
     Baixa o áudio de um vídeo do YouTube utilizando yt-dlp e converte para WAV.
@@ -21,7 +39,6 @@ def download_audio_ytdlp(url, output_dir=OUTPUT_DIR):
     Returns:
         str: Caminho do arquivo de áudio salvo, ou None em caso de erro.
     """
-    # Converte para caminho absoluto
     output_dir = os.path.abspath(output_dir)
 
     if not isinstance(output_dir, str) or not output_dir:
@@ -60,13 +77,12 @@ def extract_segments(audio_path, output_dir=OUTPUT_DIR):
     """
     try:
         audio = AudioSegment.from_file(audio_path)
-        video_id = Path(audio_path).stem
         duration = len(audio) # Duração total em ms
 
         segment_paths = []
         for start_time in range(10000, duration, 60000): # 0:10, 1:10, 2:10...
             segment = audio[start_time: start_time + 10000]
-            segment_filename = f"{video_id}_{start_time//1000}s.wav"
+            segment_filename = get_next_filename()
             segment_path = os.path.join(output_dir, segment_filename)
             segment.export(segment_path, format="wav")
             segment_paths.append(segment_path)
