@@ -29,11 +29,7 @@ class AbstractVAE(nn.Module):
     
 
     def sample(self, scale=2):
-        def generate_coord():
-            return scale * (2*random() - 1)
-        
-        mean, var = generate_coord(), generate_coord()
-        z_sample = torch.tensor([[mean, var]], dtype=torch.float).to(self.device)
+        z_sample = (scale*(torch.rand((2, self.latent_dim)) - 1)).to(self.device)
         x_decoded = self.decode(z_sample)
         return x_decoded
 
@@ -51,6 +47,7 @@ class DenseVAE(AbstractVAE):
 
         self.encoder = DenseEncoder(num_layers, original_size, input_neurons, output_neurons)
 
+        self.latent_dim = latent_dim
         self.mean_layer = nn.Linear(output_neurons, latent_dim)
         self.logvar_layer = nn.Linear(output_neurons, latent_dim)
         
@@ -95,6 +92,7 @@ class Conv1DVAE(AbstractVAE):
             kernel_size, stride, padding
         )
 
+        self.latent_dim = latent_dim
         self.mean_layer = nn.Linear(output_neurons, latent_dim)
         self.logvar_layer = nn.Linear(output_neurons, latent_dim)
 
@@ -110,5 +108,27 @@ class Conv1DVAE(AbstractVAE):
             kernel_size, stride, padding
         )
         
+        self.device = device
+
+
+class LSTMVAE(AbstractVAE):
+    def __init__(self, num_layers, original_size, latent_dim, output_neurons, middle_ground, device):
+        """
+        num_layers: Número de camadas no encoder e no decoder
+        original_size: Tamanho do vetor 1D
+        latent_dim: Tamanho da dimensão latente
+        output_neurons: Número de neurônios na última camada oculta do encoder / primeira camada do decoder
+        middle_ground: Número de neurônios na camada intermediária entre a saída do LSTM e o tamanho original
+        """
+        super(LSTMVAE, self).__init__()
+
+        self.encoder = LSTMEncoder(num_layers, original_size, output_neurons)
+
+        self.latent_dim = latent_dim
+        self.mean_layer = nn.Linear(output_neurons, latent_dim)
+        self.logvar_layer = nn.Linear(output_neurons, latent_dim)
+        
+        self.decoder = LSTMDecoder(num_layers, original_size, latent_dim, output_neurons, middle_ground)
+
         self.device = device
 

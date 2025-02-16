@@ -70,3 +70,15 @@ class Conv1DEncoder(nn.Module):
         else:
             return self.__compute_out_neurons_conv(out_neurons, kernel_size, stride, padding, num_layers-1)
 
+
+class LSTMEncoder(nn.Module):
+    def __init__(self, num_layers, original_size, output_neurons):
+        super(LSTMEncoder, self).__init__()
+
+        self.lstm = nn.LSTM(original_size, output_neurons, num_layers=num_layers)
+    
+
+    def forward(self, x):
+        x, _ = self.lstm(x)
+        return x
+
