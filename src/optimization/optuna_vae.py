@@ -5,50 +5,70 @@ from src.models.vae import DenseVAE, Conv1DVAE, LSTMVAE
 from src.utils.metrics import VAELoss
 from src.utils.utils import train
 
-# Espaço de busca dos hiperparâmetros
+# Espaço de busca dos hiperparâmetros pros 3 modelos
 hyperparam_spaces = {
     "dense":{
-        "num_layers": lambda trial: trial.suggest_int("num_layers", 2, 4),
-        "latent_dim": lambda trial: trial.suggest_int("latent_dim", 30000, 40000),
-        "input_neurons": lambda trial: trial.suggest_int("input_neurons", 1, 1000),
-        "output_neurons": lambda trial: trial.suggest_int("output_neurons", 1, 1000),
-        "num_epochs": lambda trial: trial.suggest_categorical("num_epochs", [100])
+        "num_layers": lambda trial: trial.suggest_categorical("num_layers", [2, 3, 4, 5]),
+        "latent_dim": lambda trial: trial.suggest_categorical("latent_dim", [2, 5, 10, 20]),
+        "input_neurons": lambda trial: trial.suggest_categorical("input_neurons", [1000, 750, 500]),
+        "output_neurons": lambda trial: trial.suggest_categorical("output_neurons", [50, 100, 200])
     },
-    "conv":{},
-    "lstm":{}}
+    "conv":{
+        "num_conv_layers": lambda trial: trial.suggest_categorical("num_conv_layers", [1, 2, 3]),
+        "num_dense_layers": lambda trial: trial.suggest_categorical("num_dense_layers", [1, 2, 3]),
+        "latent_dim": lambda trial: trial.suggest_categorical("latent_dim", [2, 5, 10]),
+        "input_neurons": lambda trial: trial.suggest_categorical("input_neurons", [500, 200]),
+        "output_neurons": lambda trial: trial.suggest_categorical("output_neurons", [50, 100]),
+        "initial_channels": lambda trial: trial.suggest_categorical("initial_channels", [2, 4]),
+        "factor": lambda trial: trial.suggest_categorical("factor", [2, 3])
+    },
+    "lstm":{
+        "num_layers": lambda trial: trial.suggest_categorical("num_layers", [1, 2, 3]),
+        "latent_dim": lambda trial: trial.suggest_categorical("latent_dim", [2, 5]),
+        #"input_neurons": lambda trial: trial.suggest_categorical("input_neurons", [200, 350, 500]),
+        "output_neurons": lambda trial: trial.suggest_categorical("output_neurons", [50, 100, 200]),
+        "middle_ground": lambda trial: trial.suggest_categorical("middle_ground", [75, 100, 150])
+    }
+}
 
-# Modelos
-# models = {"dense":DenseVAE()}
-"""
-def dense_objective(trial, hyperparam_spaces["dense"]):
-    model = DenseVAE(**hyperparam_spaces)
-    loss = VAELoss()
+def objective(trial, model_name, n_epochs, dataset, device):
+    """Função objetivo a ser maximizada (ou função custo a ser minimizada) pelo conjunto de hiperparâmetros
 
+    Args:
+        trial (trial): trial
+        model_name (str): Nome do modelo
+        n_epochs (int): Número de épocas
+        dataset (_type_): Dataset avaliado
+        device (_type_): Dispositivo a ser considerado
+
+    Returns:
+        float: Valor da função custo
+    """
+    # Inicialização do modelo e dos seus candidatos a hiperparâmetros
+    model_hyperparams = {hyperparam:candidate(trial) for hyperparam, candidate in hyperparam_spaces[model_name].items()}
+    model_hyperparams["device"] = device
+    model_hyperparams["original_size"] = 29999
+    if model_name == "dense":
+        model = DenseVAE(**model_hyperparams).to(device)
+    elif model_name == "conv":
+        model_hyperparams["original_size"] = 29993
+        model = Conv1DVAE(**model_hyperparams).to(device)
+    elif model_name == "lstm":
+        model = LSTMVAE(**model_hyperparams).to(device)
+
+    # Inicialização do otimizador
+    optimizer = Adam(model.parameters(), lr=1e-3)
     
-    return evaluation_score
-"""
-def lstm_objective(trial, dataset, device, n_epochs):
-    # Hiperparâmetro
-    num_layers = trial.suggest_int("num_layers", 2, 4)
-    original_size = trial.suggest_categorical("original_size", [29999])
-    latent_dim = trial.suggest_int("latent_dim", 2, 40000)
-    output_neurons = trial.suggest_categorical("output_neurons", [300])
-    middle_ground = trial.suggest_int("middle_ground", 300, 1000)
-
-    # Dataset
+    # Inicialização dos dataloaders
     train_size = int(0.8 * len(dataset))
     test_size = len(dataset) - train_size
     batch_size = 32
-
     train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size)
 
-    # Modelo e cost function
-    model = LSTMVAE(num_layers=num_layers, original_size=original_size, latent_dim=latent_dim, output_neurons=output_neurons, middle_ground=middle_ground, device=device).to(device)
-    optimizer = Adam(model.parameters(), lr=1e-3)
+    # Cálculo da função de custo (métrica que se deseja minimizar)
     loss_function = VAELoss()
-    loss_curve = train(model, train_loader, test_loader, loss_function, optimizer, epochs=n_epochs, device=device, save_path='best_model.pth')
-
-    return loss_curve[0][-1]
+    loss_curve = train(model, train_loader, test_loader, loss_function, optimizer, epochs=n_epochs, device=device)
+    return loss_curve[1][-1]
