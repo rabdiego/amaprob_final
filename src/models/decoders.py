@@ -87,8 +87,7 @@ class Conv1DDecoder(nn.Module):
         out_neurons = int(((input_length + 2*padding - kernel_size)/stride) + 1)
         if num_layers == 1:
             return out_neurons
-        else:
-            return self.__compute_out_neurons_conv(out_neurons, kernel_size, stride, padding, num_layers-1)
+        return self.__compute_out_neurons_conv(out_neurons, kernel_size, stride, padding, num_layers-1)
 
 
 class LSTMDecoder(nn.Module):

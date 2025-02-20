@@ -4,10 +4,10 @@ import torch
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, random_split
 from torch.optim.adam import Adam
-from metrics import VAELoss
-from data import LoFiDataset
+from utils.metrics import VAELoss
+from data.data import LoFiDataset
 from vae import DenseVAE, Conv1DVAE, LSTMVAE
-from utils import train
+from utils.utils import train
 
 model_name = sys.argv[1]
 model_path = sys.argv[2]
@@ -23,7 +23,7 @@ match model_name:
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 print(f'\t[INFO] Running on {device}\n')
 
-dataset = LoFiDataset('../data')
+dataset = LoFiDataset('../../data')
 
 generator = torch.Generator().manual_seed(0)
 train_set, test_set = random_split(dataset, [0.8, 0.2], generator=generator)
@@ -60,7 +60,7 @@ optimizer = Adam(model.parameters(), lr=6e-4)
 loss_function = VAELoss()
 
 print(f'\t[INFO] Training started')
-loss_curve = train(model, train_loader, test_loader, loss_function, optimizer, epochs=num_epochs, device=device, save_path=f'../models/{model_path}.pth')
+loss_curve = train(model, train_loader, test_loader, loss_function, optimizer, epochs=num_epochs, device=device, save_path=f'../../models/{model_path}.pth')
 
 plt.plot(loss_curve[0])
 plt.plot(loss_curve[1])
@@ -68,5 +68,5 @@ plt.title(f'Função custo - {model_path}')
 plt.xlabel('Épocas')
 plt.ylabel('Loss')
 plt.legend(['Treino', 'Validação'])
-plt.savefig(f'../plots/loss/{model_path}.png')
-print(f'\n\t[INFO] Loss curve saved at \'../plots/loss/{model_path}.png\'')
+plt.savefig(f'../../plots/loss/{model_path}.png')
+print(f'\n\t[INFO] Loss curve saved at \'../../plots/loss/{model_path}.png\'')

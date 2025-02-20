@@ -23,4 +23,4 @@ class LoFiDataset(Dataset):
         )
 
         downsampled_waveform = resampler(waveform)
-        return downsampled_waveform.mean(axis=0)[:-1]
+        return downsampled_waveform.mean(axis=0)[:-5]

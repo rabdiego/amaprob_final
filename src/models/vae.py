@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 from random import random
-from src.models.encoders import *
-from src.models.decoders import *
+from models.encoders import *
+from models.decoders import *
 
 class AbstractVAE(nn.Module):
     def encode(self, x):

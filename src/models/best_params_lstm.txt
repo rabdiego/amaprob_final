@@ -1,0 +1,1 @@
+LSTM: {'num_layers': 3, 'latent_dim': 5, 'output_neurons': 100, 'middle_ground': 100}

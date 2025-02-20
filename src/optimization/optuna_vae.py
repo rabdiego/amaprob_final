@@ -1,9 +1,9 @@
 import optuna
 from torch.optim.adam import Adam
 from torch.utils.data import DataLoader, random_split
-from src.models.vae import DenseVAE, Conv1DVAE, LSTMVAE
-from src.utils.metrics import VAELoss
-from src.utils.utils import train
+from models.vae import DenseVAE, Conv1DVAE, LSTMVAE
+from utils.metrics import VAELoss
+from utils.utils import train
 
 # Espaço de busca dos hiperparâmetros pros 3 modelos
 hyperparam_spaces = {
@@ -25,7 +25,6 @@ hyperparam_spaces = {
     "lstm":{
         "num_layers": lambda trial: trial.suggest_categorical("num_layers", [1, 2, 3]),
         "latent_dim": lambda trial: trial.suggest_categorical("latent_dim", [2, 5]),
-        #"input_neurons": lambda trial: trial.suggest_categorical("input_neurons", [200, 350, 500]),
         "output_neurons": lambda trial: trial.suggest_categorical("output_neurons", [50, 100, 200]),
         "middle_ground": lambda trial: trial.suggest_categorical("middle_ground", [75, 100, 150])
     }
@@ -47,11 +46,11 @@ def objective(trial, model_name, n_epochs, dataset, device):
     # Inicialização do modelo e dos seus candidatos a hiperparâmetros
     model_hyperparams = {hyperparam:candidate(trial) for hyperparam, candidate in hyperparam_spaces[model_name].items()}
     model_hyperparams["device"] = device
-    model_hyperparams["original_size"] = 29999
+    model_hyperparams["original_size"] = dataset[0].shape[0]
     if model_name == "dense":
         model = DenseVAE(**model_hyperparams).to(device)
     elif model_name == "conv":
-        model_hyperparams["original_size"] = 29993
+        model_hyperparams["original_size"] = dataset[0].shape[0]
         model = Conv1DVAE(**model_hyperparams).to(device)
     elif model_name == "lstm":
         model = LSTMVAE(**model_hyperparams).to(device)
@@ -71,4 +70,4 @@ def objective(trial, model_name, n_epochs, dataset, device):
     # Cálculo da função de custo (métrica que se deseja minimizar)
     loss_function = VAELoss()
     loss_curve = train(model, train_loader, test_loader, loss_function, optimizer, epochs=n_epochs, device=device)
-    return loss_curve[1][-1]
+    return min(loss_curve[1])
