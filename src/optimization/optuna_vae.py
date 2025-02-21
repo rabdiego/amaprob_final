@@ -1,9 +1,9 @@
 import optuna
 from torch.optim.adam import Adam
 from torch.utils.data import DataLoader, random_split
-from models.vae import DenseVAE, Conv1DVAE, LSTMVAE
-from utils.metrics import VAELoss
-from utils.utils import train
+from src.models.vae import DenseVAE, Conv1DVAE, LSTMVAE
+from src.utils.metrics import VAELoss
+from src.utils.utils import train
 
 # Espaço de busca dos hiperparâmetros pros 3 modelos
 hyperparam_spaces = {
